@@ -1,0 +1,113 @@
+@inherits LayoutComponentBase
+@inject CookieThemeService CookieThemeService
+@inject ExampleService ExampleService
+
+<RadzenComponents />
+
+<RadzenLayout style="grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body';">
+    <RadzenHeader>
+        <RadzenRow JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0">
+            <RadzenColumn Size="5">
+                <RadzenSidebarToggle Click="@SidebarToggleClick"></RadzenSidebarToggle>
+            </RadzenColumn>
+            <RadzenColumn Size="7">
+                <RadzenStack AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem" class="rz-px-2">
+                    <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
+                        <RadzenLink Path="https://blog.angular.dev/" title="Angular Medium blog" class="fa-solid fa-blog" target="_blank" />
+                        <RadzenLink Path="https://discord.gg/angular" title="Angular Discord" class="fab fa-discord" target="_blank" />
+                        <RadzenLink Path="https://x.com/angular" title="Angular X profile" class="fab fa-x-twitter" target="_blank" />
+                        <RadzenLink Path="https://www.youtube.com/angular" title="Angular YouTube channel" class="fab fa-youtube" target="_blank" />
+                        <RadzenLink Path="https://github.com/angular/angular" title="Angular GitHub" class="fab fa-github" target="_blank" />
+                    </div>
+                    <RadzenAppearanceToggle />
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenHeader>
+    <RadzenBody Expanded="@sidebarExpanded">
+        <RadzenRow class="rz-mx-auto rz-px-4 rz-pt-2 rz-pt-md-4 rz-pt-lg-6 rz-pt-xl-12 rz-pb-2 rz-pb-lg-12" Style="max-width: 1440px;">
+            <RadzenColumn Size="12">
+                @Body
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenBody>
+    <RadzenSidebar @bind-Expanded="@sidebarExpanded" style="z-index: 2">
+
+        <RadzenStack AlignItems="Radzen.AlignItems.Center" class="rz-py-4 rz-py-lg-6" Style="padding: var(--rz-panel-menu-item-padding); border-bottom: var(--rz-panel-menu-item-border);">
+            <RadzenImage Path="images/icon_angular_gradient_alt01.png" style="width: 48px; height: 48px;" AlternateText="Application logo"></RadzenImage>
+            @* <RadzenText Text="Angular Framework" TextStyle="Radzen.Blazor.TextStyle.Subtitle1" class="rz-mb-0" style="color: var(--rz-sidebar-color);" /> *@
+        </RadzenStack>
+
+        <div style="padding: 1rem">
+            <RadzenTextBox Placeholder="Find section ..." type="search" @oninput="@FilterPanelMenu" style="width: 100%" Class="rz-search-input" />
+        </div>
+        <div style="flex: 1; overflow: auto">
+            <RadzenPanelMenu Match="NavLinkMatch.Prefix">
+                @foreach (var category in examples)
+                {
+                    <NavigationItem @bind-Expanded=@category.Expanded Example=@category>
+                        @if (category.Children != null)
+                        {
+                            @foreach (var example in category.Children)
+                            {
+                                if (example.Children != null)
+                                {
+                                    <NavigationItem @bind-Expanded=@example.Expanded Example=@example>
+                                        @foreach (var child in example.Children)
+                                        {
+                                            <NavigationItem @bind-Expanded=@child.Expanded Example=@child />
+                                        }
+                                    </NavigationItem>
+                                }
+                                else
+                                {
+                                    <NavigationItem @bind-Expanded=@example.Expanded Example=@example />
+                                }
+                            }
+                        }
+                    </NavigationItem>
+                }
+            </RadzenPanelMenu>
+        </div>
+
+        <RadzenStack AlignItems="Radzen.AlignItems.Center" Gap="0" class="rz-py-4 rz-py-lg-6" Style="padding: var(--rz-panel-menu-item-padding);">
+            <RadzenText Text="AngularAppTutorial v1.0.0" TextStyle="Radzen.Blazor.TextStyle.Caption" TagName="Radzen.Blazor.TagName.P" TextAlign="Radzen.TextAlign.Center" />
+            <RadzenText Text="Copyright Ⓒ 2024" TextStyle="Radzen.Blazor.TextStyle.Caption" class="rz-mb-0" TagName="Radzen.Blazor.TagName.P" TextAlign="Radzen.TextAlign.Center" />
+        </RadzenStack>
+
+    </RadzenSidebar>
+</RadzenLayout>
+
+
+@code
+{
+
+    bool sidebarExpanded = true;
+    RadzenSidebar sidebar0;
+    RadzenBody body0;
+    bool bodyExpanded = false;
+    bool rendered;
+
+    IEnumerable<Example> examples;
+    protected override void OnInitialized()
+    {
+        examples = ExampleService.Examples;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender) rendered = true;
+    }
+
+    void FilterPanelMenu(ChangeEventArgs args)
+    {
+        var term = args.Value.ToString();
+        examples = string.IsNullOrEmpty(term) ? ExampleService.Examples : ExampleService.Filter(term);
+    }
+
+    void SidebarToggleClick()
+    {
+        sidebarExpanded = !sidebarExpanded;
+    }
+
+  }
